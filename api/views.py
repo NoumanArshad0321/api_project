@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.views import APIView
+from rest_framework import generics, mixins
+from rest_framework import viewsets
 
 # Create your views here.
 @api_view(['GET', 'POST'])
@@ -46,9 +48,9 @@ def studentsDetailView(request, pk):
         student.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)    
     
+# *************** CLASS BASED VIEWS *******************
 
-
-class employeesView(APIView):
+"""class employeesView(APIView):
     def get(self, request):
         employees = Employee.objects.all()
         serializer = EmployeeSerializer(employees, many=True)
@@ -99,4 +101,61 @@ class employeesDetail(APIView):
     def delete(self, request, pk):
         employee = self.get_object(pk)
         employee.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+       return Response(status=status.HTTP_204_NO_CONTENT)
+"""
+
+
+# ************* MIXINS  AND GENERICS **************
+
+"""class employeesView(generics.GenericAPIView, mixins.ListModelMixin, mixins.CreateModelMixin):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+
+    def get(self, request):
+        return self.list(request)
+
+    def post(self, request):
+        return self.create(request)
+    
+
+class employeesDetail(generics.GenericAPIView, mixins.RetrieveModelMixin, mixins.UpdateModelMixin , mixins.DestroyModelMixin):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+
+    def get (self, request,pk):
+        return self.retrieve(request, pk)
+    
+    def put(self, request, pk):
+        return self.update(request, pk)
+    
+    def delete(self, request, pk):
+        return self.destroy(request, pk)"""
+    
+
+    # ******************** End of MIXINS AND GENERICS ********************
+
+
+# *************** GENERICS OVER *****************
+
+
+"""class employeesView(generics.ListCreateAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+
+
+class employeesDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer"""
+
+
+
+
+
+# *************** VIEWSETS ***********************
+
+
+
+
+class employeesViewSet(viewsets.ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
