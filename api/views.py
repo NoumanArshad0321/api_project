@@ -1,7 +1,7 @@
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from blogs.models import Blog, Comment
-from blogs.serializers import BlogSerializer, CommentSerializer
+from blogs.serializers import BlogSerializer, CommentSerializer, LoginSerializer, RegisterSerializer
 from employees.models import Employee
 from students.models import Student
 from.serializers import EmployeeSerializer, StudentSerializer
@@ -14,6 +14,8 @@ from rest_framework import viewsets
 from api.paginations import CustomPagination
 from employees.filters import EmployeeFilter
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 # Create your views here.
 @api_view(['GET', 'POST'])
 def studentsView(request):
@@ -246,3 +248,41 @@ class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     lookup_field = 'pk'
+
+
+class RegisterAPI(APIView):
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
+
+
+from rest_framework.exceptions import ValidationError
+
+class loginAPI(APIView):
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except ValidationError:
+            return Response(
+                {"error": "Username and password are required"},
+                status=400
+            )
+
+        username = serializer.validated_data.get("username")
+        password = serializer.validated_data.get("password")
+
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return Response({"error": "Invalid credentials"}, status=400)
+
+        refresh = RefreshToken.for_user(user)
+        access = AccessToken.for_user(user)
+
+        return Response({
+            'refresh': str(refresh),
+            'access': str(access)
+        })
